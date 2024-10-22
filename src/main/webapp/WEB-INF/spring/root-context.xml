@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 커넥션풀을 쓸 수 있는 객체를 등록해준다. -->
+    <bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource" destroy-method="close">
+        <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+        <property name="url" value="jdbc:oracle:thin:@localhost:1521:xe"/>
+        <property name="username" value="spring"/>
+        <property name="password" value="spring"/>
+    </bean>
+    <!-- MariaDB -->
+    <bean id="dataSourceMariaDB" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.mariadb.jdbc.Driver"/>
+        <property name="url" value="jdbc:mariadb://localhost:3306/SPORTSMATE"/>
+        <property name="username" value="SPORTSMATE"/>
+        <property name="password" value="SPORTSMATE"/>
+    </bean>
+
+    <!-- MyBatis에 객체 등록 -->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactory">
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+<!--
+    SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
+    sqlSessionFactory.setConfigLocation("classpath:mybatis-config.xml")
+    ...
+-->
+    <bean class="org.mybatis.spring.SqlSessionTemplate" id="sqlSession">
+        <constructor-arg ref="sqlSessionFactory"/>
+    </bean>
+<!--
+    SqlSessionTemplate sqlSession = new SqlSessionTemplate(sqlSessionFactory);
+-->
+<!--
+    property : setter를 통해 주입
+    constructor-arg : 생성자를 통한 주입
+-->
+
+    <bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+        <property name="maxUploadSize" value="100000000"/>
+        <property name="maxInMemorySize" value="100000000"/>
+    </bean>
+
+    <!--
+    aop 등록
+    context:component-scan 등록(AOP에 대한 것만 가져온다.
+        use-default-filters : false 기본적인 맵핑(Controller 이런것들은 안가져온다.)
+    log4j-core bean 등록
+-->
+
+    <!-- @Aspect 어노테이션을 com.sportsmate 경로에서 scan 하겠다. -->
+    <context:component-scan base-package="com.sportsmate"
+                            use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.aspectj.lang.annotation.Aspect"/> <!-- AOP와 관련된 어노테이션을 가져온다. -->
+    </context:component-scan>
+</beans>
